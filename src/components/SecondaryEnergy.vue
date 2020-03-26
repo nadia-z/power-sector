@@ -3,8 +3,9 @@
     <div class="key">
       Legend or selectors if any
     </div>
-    <svg :width="innerWidth" :height="innerHeight" :transform="`translate(${margin.left}, 0)`">
-    </svg>
+    <img src="../assets/secondaryenergy.png" :width="innerWidth"/>
+    <!-- <svg :width="innerWidth" :height="innerHeight" :transform="`translate(${margin.left}, 0)`">
+    </svg> -->
   </div>
 </template>
 

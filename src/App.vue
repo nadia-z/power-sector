@@ -12,13 +12,11 @@
         <h2 class="chapter-title" id="introduction">
           What kind of risks are we talking about?
         </h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-          ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-          voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
-          sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-          mollit anim id est laborum.</p>
+        <p>The power sector goes through a transition from largely fossil-based
+          power production to renewable electricity production.(...)
+          ---- Be careful to make the distinction clear between Primary and Secondary,
+          ‘Electricity production’ could be a good labeling.
+          </p>
       </div>
       <div class="vis-wrapper">
         <SecondaryEnergy :width="width" :height="height"/>
