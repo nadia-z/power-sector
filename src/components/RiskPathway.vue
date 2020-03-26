@@ -8,7 +8,7 @@
         </a>
       </section>
       <section>
-        <a class="wrapper" href="https://dev.climatescenarios.org/">
+        <a class="wrapper active" href="https://dev.climatescenarios.org/">
           <div><span class="glyph-power"/></div>
           <div><h4>Chapter 2</h4><span>Power Sector&nbsp;&nearr;</span></div>
         </a>
@@ -56,6 +56,10 @@ export default {
     text-decoration: none;
     background: none;
     color: #000;
+  }
+
+  .active {
+    color: #B035C9;
   }
 
   .risk-menu {
