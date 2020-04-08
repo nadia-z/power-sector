@@ -18,7 +18,7 @@
           ‘Electricity production’ could be a good labeling.
           </p>
       </div>
-      <div class="vis-wrapper">
+      <div class="vis-wrapper secondaryenergy">
         <SecondaryEnergy :width="width" :height="height"/>
       </div>
       <div class="text-wrapper">
@@ -158,8 +158,12 @@ export default {
 
     .vis-wrapper {
       margin-top: $spacing;
-      border: 0.5px solid lightblue;
+      // border: 0.5px solid lightblue;
       height: 100vh;
+
+      &.secondaryenergy  {
+        height: 200vh;
+      }
     }
 
     .module-meta {
