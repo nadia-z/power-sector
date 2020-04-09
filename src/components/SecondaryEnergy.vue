@@ -1,32 +1,33 @@
 <template>
   <div class="secondary-energy" ref="inWrapper">
-    <div class="key">
+    <div class="key" :class=" mobile ? 'mobile' : 'desktop'">
       <h4>Volume in <span class="dotted">secondary energy</span> production (Ej/year)</h4>
       <p class="highlight">{{ model[0] }}</p>
-      Select a scenario and a region:
-      <SensesSelect class="scenario_selector" :options="scenarios" v-model="currentScenario"/>
-      <SensesSelect class="region_selector" :options="regions" v-model="currentRegion"/>
+      <p class="selectors">
+        Select a scenario and a region:
+        <SensesSelect class="scenario_selector" :options="scenarios" v-model="currentScenario"/>
+        <SensesSelect class="region_selector" :options="regions" v-model="currentRegion"/>
+      </p>
     </div>
     <div></div>
     <svg :width="innerWidth" :height="innerHeight" :transform="`translate(${margin.left}, 0)`">
-      <g v-for="(group, g) in dots" v-bind:key="g + 'group'" :class="`${labels[g]}-group`" :transform="`translate(0, ${groupPosition[g]})`">
-        <circle v-for="(dot, d) in group" v-bind:key="d + 'dot'" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
+      <g v-for="(group, g) in world" v-bind:key="g + 'wgroup'" :class="`${labels[g]}-wgroup`" :transform="`translate(0, ${groupPosition[g]})`">
         <g class="axis_group">
           <line class="axis" y1="5" y2="5" :x1="scale.x(2010)" :x2="scale.x(2100)"/>
           <circle class="axis-dot" :cx="scale.x(2010)" cy="5" r="2.5"/>
           <circle class="axis-dot" :cx="scale.x(2100)" cy="5" r="2.5"/>
-          <text :x="scale.x(2010)" y="-10">{{ labels[g] }}</text>
         </g>
-      </g>
-      <g v-for="(group, g) in world" v-bind:key="g + 'wgroup'" :class="`${labels[g]}-wgroup`" :transform="`translate(0, ${groupPosition[g]})`">
-        <circle v-for="(dot, d) in group" v-bind:key="d + 'wdot'" @mouseover="[active = true, over = d + labels[g]]" @mouseleave="active = false" class="world" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
         <g v-for="(text, t) in group" v-bind:key="t + 'text'" :class="active === true & over === t + labels[g] ? 'visible' : 'invisible'">
           <circle class="year-dot" :cx="text.year" cy="5" r="2.5"/>
-          <rect class="shadow-label" width="80" height="30" :x="text.year - 40" y="40" rx="15"/>
-          <text class="value-label" :x="text.year" y="60">{{ Math.round(text.value) }} Ej/year</text>
-          <text class="year-label" :x="text.year" y="-40">{{ years[t] }}</text>
-          <line class="line-label" :x1="text.year" :x2="text.year" y1="-35" y2="5"/>
+          <text class="year-label" :x="text.year" y="20">{{ years[t] }}</text>
+          <text class="year-label" :x="text.year" y="-35">{{ Math.round(text.value) }} Ej/year</text>
+          <line class="line-label" :x1="text.year" :x2="text.year" y1="-25" y2="5"/>
         </g>
+        <circle v-for="(dot, d) in group" v-bind:key="d + 'wdot'" @mouseover="[active = true, over = d + labels[g]]" @mouseleave="active = false" class="world" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
+      </g>
+      <g v-for="(group, g) in dots" v-bind:key="g + 'group'" :class="`${labels[g]}-group`" :transform="`translate(0, ${groupPosition[g]})`">
+        <circle v-for="(dot, d) in group" v-bind:key="d + 'dot'" @mouseover="[active = true, over = d + labels[g]]" @mouseleave="active = false" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
+        <text :x="scale.x(2009)" y="40">{{ labels[g] }}</text>
       </g>
     </svg>
   </div>
@@ -52,6 +53,10 @@ export default {
     height: {
       type: Number,
       default: 0
+    },
+    mobile: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -88,7 +93,7 @@ export default {
           .range([50, this.innerWidth - (this.margin.right * 10)])
           .domain([2010, 2100]),
         y: d3.scaleLinear()
-          .range([0, 500])
+          .range([2, 500])
           .domain([d3.min(this.allValues), d3.max(this.allValues)])
       }
     },
@@ -160,13 +165,36 @@ $margin-space: $spacing / 2;
 
     border-bottom:0.5px solid blue;
     background: hsla(0,0%,100%,.90);
+
     .highlight {
       margin-right: $margin-space;
+      margin-top: 5px;
+      margin-left: 10px;
+    }
+    .selectors {
+      display: inline-block;
+      width: 60%;
     }
     .scenario_selector {
       margin-top: $margin-space;
       margin-left: $margin-space;
       margin-right: $margin-space;
+    }
+
+    h4 {
+      padding-left: 10px;
+    }
+
+    &.mobile {
+        width: 90%;
+        height: 150px;
+        top: 100px;
+
+      .selectors {
+        width: 90%;
+        margin-top: 15px;
+        margin-left: 10px;
+      }
     }
   }
 
@@ -176,27 +204,26 @@ $margin-space: $spacing / 2;
     }
     circle {
       fill: $color-gray;
-      fill-opacity: 0.8;
+      fill-opacity: 0.6;
     }
     .axis-dot {
       fill-opacity: 1;
     }
     .world {
-      fill-opacity: 0.1;
+      fill-opacity: 0.2;
       stroke-dasharray: 2 2;
     }
     g {
-      .value-label, .year-label {
+      .year-label {
         text-anchor: middle;
+        fill: black;
+        font-size: 10px;
       }
       .shadow-label {
         fill-opacity: 0.6;
         fill: white;
       }
-      .year-label {
-        fill: $color-gray;
-        font-size: 10px;
-      }
+
       .line-label {
         stroke: $color-gray;
         stroke-width: 0.5;

@@ -19,7 +19,7 @@
           </p>
       </div>
       <div class="vis-wrapper secondaryenergy">
-        <SecondaryEnergy :width="width" :height="height"/>
+        <SecondaryEnergy :width="width" :height="height" :mobile="mobile"/>
       </div>
       <div class="text-wrapper">
         <h2 class="chapter-title" id="costs">
