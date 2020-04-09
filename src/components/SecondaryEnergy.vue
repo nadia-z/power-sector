@@ -1,22 +1,32 @@
 <template>
   <div class="secondary-energy" ref="inWrapper">
-    <div class="key" :data="logSome">
+    <div class="key">
       <h4>Volume in <span class="dotted">secondary energy</span> production (Ej/year)</h4>
+      <p class="highlight">{{ model[0] }}</p>
       Select a scenario and a region:
       <SensesSelect class="scenario_selector" :options="scenarios" v-model="currentScenario"/>
       <SensesSelect class="region_selector" :options="regions" v-model="currentRegion"/>
     </div>
     <div></div>
     <svg :width="innerWidth" :height="innerHeight" :transform="`translate(${margin.left}, 0)`">
-      <g v-for="(group, g) in world" v-bind:key="g + 'wgroup'" :class="`${labels[g]}-wgroup`" :transform="`translate(0, ${groupPosition[g]})`">
-        <circle v-for="(dot, d) in group" v-bind:key="d + 'wdot'" class="world" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
-      </g>
       <g v-for="(group, g) in dots" v-bind:key="g + 'group'" :class="`${labels[g]}-group`" :transform="`translate(0, ${groupPosition[g]})`">
         <circle v-for="(dot, d) in group" v-bind:key="d + 'dot'" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
-        <line class="axis" y1="5" y2="5" :x1="scale.x(2010)" :x2="scale.x(2100)"/>
-        <circle class="axis-dot" :cx="scale.x(2010)" cy="5" r="2.5"/>
-        <circle class="axis-dot" :cx="scale.x(2100)" cy="5" r="2.5"/>
-        <text :x="scale.x(2010)" y="-10">{{ labels[g] }}</text>
+        <g class="axis_group">
+          <line class="axis" y1="5" y2="5" :x1="scale.x(2010)" :x2="scale.x(2100)"/>
+          <circle class="axis-dot" :cx="scale.x(2010)" cy="5" r="2.5"/>
+          <circle class="axis-dot" :cx="scale.x(2100)" cy="5" r="2.5"/>
+          <text :x="scale.x(2010)" y="-10">{{ labels[g] }}</text>
+        </g>
+      </g>
+      <g v-for="(group, g) in world" v-bind:key="g + 'wgroup'" :class="`${labels[g]}-wgroup`" :transform="`translate(0, ${groupPosition[g]})`">
+        <circle v-for="(dot, d) in group" v-bind:key="d + 'wdot'" @mouseover="[active = true, over = d + labels[g]]" @mouseleave="active = false" class="world" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
+        <g v-for="(text, t) in group" v-bind:key="t + 'text'" :class="active === true & over === t + labels[g] ? 'visible' : 'invisible'">
+          <circle class="year-dot" :cx="text.year" cy="5" r="2.5"/>
+          <rect class="shadow-label" width="80" height="30" :x="text.year - 40" y="40" rx="15"/>
+          <text class="value-label" :x="text.year" y="60">{{ Math.round(text.value) }} Ej/year</text>
+          <text class="year-label" :x="text.year" y="-40">{{ years[t] }}</text>
+          <line class="line-label" :x1="text.year" :x2="text.year" y1="-35" y2="5"/>
+        </g>
       </g>
     </svg>
   </div>
@@ -48,12 +58,16 @@ export default {
     return {
       SecondaryEnergy,
       energy: _.groupBy(SecondaryEnergy, d => d.Variable),
+      model: [...new Set(SecondaryEnergy.map(r => r.Model))],
+      years: [...new Set(SecondaryEnergy.map(r => r.Year))],
       labels: [...new Set(SecondaryEnergy.map(r => r.Variable))],
       scenarios: [...new Set(SecondaryEnergy.map(r => r.Scenario))],
       regions: [...new Set(SecondaryEnergy.map(r => r.Region))],
       allValues: [...new Set(SecondaryEnergy.map(r => r.Value))],
       currentScenario: 'NPi_v3',
       currentRegion: 'World',
+      active: false,
+      over: '',
       margin: {
         top: 10,
         bottom: 10,
@@ -104,16 +118,6 @@ export default {
         if (e !== 0) { pos = pos + this.innerHeight / 8 }
         return pos
       })
-    },
-    logSome () {
-      // console.log(this.currentRegion, this.currentScenario, this.allValues)
-      // console.log(d3.max(this.allValues))
-      // console.log('dots', this.dots)
-      // console.log('grouped', this.energy)
-      // console.log(this.SecondaryEnergy)
-      // console.log(this.groupPosition)
-      // console.log(this.currentScenario)
-      return 0
     }
   },
   methods: {
@@ -139,12 +143,13 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 @import "library/src/style/variables.scss";
+$margin-space: $spacing / 2;
 
 .secondary-energy {
   height: 170vh;
 
   .key {
-    z-index: 90000;
+    z-index: 9;
     width: 100%;
     height: 100px;
     margin-bottom: 10%;
@@ -154,12 +159,14 @@ export default {
     top: 50px;
 
     border-bottom:0.5px solid blue;
-    background-color: white;
-
+    background: hsla(0,0%,100%,.90);
+    .highlight {
+      margin-right: $margin-space;
+    }
     .scenario_selector {
-      margin-top: $spacing / 2;
-      margin-left: $spacing / 2;
-      margin-right: $spacing;
+      margin-top: $margin-space;
+      margin-left: $margin-space;
+      margin-right: $margin-space;
     }
   }
 
@@ -177,6 +184,31 @@ export default {
     .world {
       fill-opacity: 0.1;
       stroke-dasharray: 2 2;
+    }
+    g {
+      .value-label, .year-label {
+        text-anchor: middle;
+      }
+      .shadow-label {
+        fill-opacity: 0.6;
+        fill: white;
+      }
+      .year-label {
+        fill: $color-gray;
+        font-size: 10px;
+      }
+      .line-label {
+        stroke: $color-gray;
+        stroke-width: 0.5;
+      }
+      .visible {
+        opacity: 1;
+        transition: opacity 0.5s;
+      }
+      .invisible {
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
     }
     .Coal {
       fill: getColor(gray, 80);
