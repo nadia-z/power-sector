@@ -1,25 +1,39 @@
 <template>
   <div class="secondary-energy" ref="inWrapper">
-    <div class="key" :data='logSome'>
-      Legend or selectors if any
+    <div class="key" :data="logSome">
+      <h4>Volume in <span class="dotted">secondary energy</span> production (Ej/year)</h4>
+      Select a scenario and a region:
+      <SensesSelect class="scenario_selector" :options="scenarios" v-model="currentScenario"/>
+      <SensesSelect class="region_selector" :options="regions" v-model="currentRegion"/>
     </div>
     <div></div>
     <svg :width="innerWidth" :height="innerHeight" :transform="`translate(${margin.left}, 0)`">
+      <g v-for="(group, g) in world" v-bind:key="g + 'wgroup'" :class="`${labels[g]}-wgroup`" :transform="`translate(0, ${groupPosition[g]})`">
+        <circle v-for="(dot, d) in group" v-bind:key="d + 'wdot'" class="world" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
+      </g>
       <g v-for="(group, g) in dots" v-bind:key="g + 'group'" :class="`${labels[g]}-group`" :transform="`translate(0, ${groupPosition[g]})`">
-        <line y1="5" y2="5" :x1="scale.x(2010)" :x2="scale.x(2090)" stroke="black"/>
         <circle v-for="(dot, d) in group" v-bind:key="d + 'dot'" :class="labels[g]" :cx="dot.year" cy="5" :r="dot.value"/>
+        <line class="axis" y1="5" y2="5" :x1="scale.x(2010)" :x2="scale.x(2100)"/>
+        <circle class="axis-dot" :cx="scale.x(2010)" cy="5" r="2.5"/>
+        <circle class="axis-dot" :cx="scale.x(2100)" cy="5" r="2.5"/>
+        <text :x="scale.x(2010)" y="-10">{{ labels[g] }}</text>
       </g>
     </svg>
   </div>
 </template>
 
 <script>
-import SecondaryEnergy from 'dsv-loader!@/assets/data/SecondaryEnergy.csv' // eslint-disable-line import/no-webpack-loader-syntax
 import _ from 'lodash'
 import * as d3 from 'd3'
 
+import SecondaryEnergy from 'dsv-loader!@/assets/data/SecondaryEnergy.csv' // eslint-disable-line import/no-webpack-loader-syntax
+import SensesSelect from 'library/src/components/SensesSelect.vue'
+
 export default {
   name: 'RiskPathway',
+  components: {
+    SensesSelect
+  },
   props: {
     width: {
       type: Number,
@@ -35,8 +49,10 @@ export default {
       SecondaryEnergy,
       energy: _.groupBy(SecondaryEnergy, d => d.Variable),
       labels: [...new Set(SecondaryEnergy.map(r => r.Variable))],
-      max: [...new Set(SecondaryEnergy.map(r => r.Value))],
-      currentScenario: 'NPi2020_400_v3',
+      scenarios: [...new Set(SecondaryEnergy.map(r => r.Scenario))],
+      regions: [...new Set(SecondaryEnergy.map(r => r.Region))],
+      allValues: [...new Set(SecondaryEnergy.map(r => r.Value))],
+      currentScenario: 'NPi_v3',
       currentRegion: 'World',
       margin: {
         top: 10,
@@ -51,15 +67,15 @@ export default {
     innerWidth () { return this.width - (this.margin.left + this.margin.right) },
     scenarioFilter () { return _.map(this.energy, (sc, s) => _.filter(sc, d => d.Scenario === this.currentScenario)) },
     regionFilter () { return _.map(this.scenarioFilter, (re, r) => _.filter(re, d => d.Region === this.currentRegion)) },
+    worldFilter () { return _.map(this.scenarioFilter, (re, r) => _.filter(re, d => d.Region === 'World')) },
     scale () {
-      d3.max(this.max)
       return {
         x: d3.scaleLinear()
-          .range([50, this.innerWidth - (this.margin.right * 8)])
-          .domain([2010, 2090]),
+          .range([50, this.innerWidth - (this.margin.right * 10)])
+          .domain([2010, 2100]),
         y: d3.scaleLinear()
           .range([0, 500])
-          .domain([d3.min(this.max), d3.max(this.max)])
+          .domain([d3.min(this.allValues), d3.max(this.allValues)])
       }
     },
     dots () {
@@ -72,18 +88,31 @@ export default {
         })
       })
     },
+    world () {
+      return _.map(this.worldFilter, (energy, e) => {
+        return _.map(energy, (single, s) => {
+          return {
+            year: this.scale.x(single.Year),
+            value: this.scale.y(Math.sqrt(single.Value))
+          }
+        })
+      })
+    },
     groupPosition () {
       let pos = 50
       return _.map(this.regionFilter, (energy, e, l) => {
-        if (e !== 0) { pos = pos + 140 }
+        if (e !== 0) { pos = pos + this.innerHeight / 8 }
         return pos
       })
     },
     logSome () {
+      // console.log(this.currentRegion, this.currentScenario, this.allValues)
+      // console.log(d3.max(this.allValues))
       // console.log('dots', this.dots)
       // console.log('grouped', this.energy)
       // console.log(this.SecondaryEnergy)
-      console.log(this.groupPosition)
+      // console.log(this.groupPosition)
+      // console.log(this.currentScenario)
       return 0
     }
   },
@@ -115,18 +144,39 @@ export default {
   height: 170vh;
 
   .key {
-    width: 90%;
+    z-index: 90000;
+    width: 100%;
     height: 100px;
-    margin: 0 auto;
-    padding: 0 20px;
+    margin-bottom: 10%;
+    padding: 10px 0px;
+
+    position:sticky;
+    top: 50px;
+
     border-bottom:0.5px solid blue;
+    background-color: white;
+
+    .scenario_selector {
+      margin-top: $spacing / 2;
+      margin-left: $spacing / 2;
+      margin-right: $spacing;
+    }
   }
 
   svg {
+    .axis {
+      stroke: $color-gray;
+    }
     circle {
-      fill: none;
+      fill: $color-gray;
       fill-opacity: 0.8;
-      stroke: red;
+    }
+    .axis-dot {
+      fill-opacity: 1;
+    }
+    .world {
+      fill-opacity: 0.1;
+      stroke-dasharray: 2 2;
     }
     .Coal {
       fill: getColor(gray, 80);

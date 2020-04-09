@@ -96,7 +96,6 @@ export default {
     mobile () {
       let isMobile = false
       if (this.width < 750) { isMobile = true }
-      console.log(this.width, isMobile)
       return isMobile
     }
   },
