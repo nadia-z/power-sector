@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <SensesMenu/>
+    <SensesMenu :id="'power-sector'"/>
     <div class="content" :class="mobile ? 'isMobile' : 'isDesktop'" ref="container">
       <div class="text-wrapper">
         <h1 class="module-title">Power Sector</h1>

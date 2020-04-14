@@ -1,7 +1,7 @@
 <template>
   <div class="secondary-energy" ref="inWrapper">
     <div class="key" :class=" mobile ? 'mobile' : 'desktop'">
-      <h4>Volume in <span class="dotted">secondary energy</span> production (Ej/year)</h4>
+      <h4>Volume in <SensesTooltip :tooltip="tooltip">secondary energy</SensesTooltip> production (Ej/year)</h4>
       <p class="highlight">{{ model[0] }}</p>
       <p class="selectors">
         Select a scenario and a region:
@@ -39,11 +39,13 @@ import * as d3 from 'd3'
 
 import SecondaryEnergy from 'dsv-loader!@/assets/data/SecondaryEnergy.csv' // eslint-disable-line import/no-webpack-loader-syntax
 import SensesSelect from 'library/src/components/SensesSelect.vue'
+import SensesTooltip from 'library/src/components/SensesTooltip.vue'
 
 export default {
   name: 'RiskPathway',
   components: {
-    SensesSelect
+    SensesSelect,
+    SensesTooltip
   },
   props: {
     width: {
@@ -69,6 +71,7 @@ export default {
       scenarios: [...new Set(SecondaryEnergy.map(r => r.Scenario))],
       regions: [...new Set(SecondaryEnergy.map(r => r.Region))],
       allValues: [...new Set(SecondaryEnergy.map(r => r.Value))],
+      tooltip: 'Here a description of what Secondary Energy is!',
       currentScenario: 'NPi_v3',
       currentRegion: 'World',
       active: false,
@@ -173,7 +176,7 @@ $margin-space: $spacing / 2;
     }
     .selectors {
       display: inline-block;
-      width: 60%;
+      width: 70%;
     }
     .scenario_selector {
       margin-top: $margin-space;
@@ -183,6 +186,10 @@ $margin-space: $spacing / 2;
 
     h4 {
       padding-left: 10px;
+    }
+
+    .v-popover {
+      display: inline;
     }
 
     &.mobile {
@@ -205,6 +212,7 @@ $margin-space: $spacing / 2;
     circle {
       fill: $color-gray;
       fill-opacity: 0.6;
+      transition: r 0.5s;
     }
     .axis-dot {
       fill-opacity: 1;
